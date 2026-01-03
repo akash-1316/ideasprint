@@ -23,6 +23,21 @@ app.use("/api/payment", paymentRoutes);      // ✅ IMPORTANT
 app.use("/api/registration", registrationRoutes);
 app.use("/api/success", successRoutes);
 app.use("/api/admin", adminRoutes);
+app.get("/test-mail", async (req, res) => {
+  try {
+    await sendMail({
+      to: "freefireakash73@gmail.com",
+      subject: "RAIC Mail Test ✅",
+      html: "<h2>Mail Working 🎉</h2>",
+    });
+
+    res.send("Mail sent");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
 
 app.get("/", (req, res) => {
   res.send("🚀 IdeaSprint Backend Running");
