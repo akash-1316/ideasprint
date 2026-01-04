@@ -21,8 +21,6 @@ const app = express();
 ========================= */
 app.use(express.json());
 
-import cors from "cors";
-
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
