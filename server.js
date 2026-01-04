@@ -21,18 +21,33 @@ const app = express();
 ========================= */
 app.use(express.json());
 
+import cors from "cors";
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://ideasprint-xi.vercel.app",
+  "https://ideasprint-admin-panel.vercel.app"
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "https://ideasprint-xi.vercel.app/",
-      "https://ideasprint-admin-panel.vercel.app/",
-    ],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman & server-to-server
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
+
 
 /* =========================
    ROUTES
