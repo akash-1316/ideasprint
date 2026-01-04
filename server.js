@@ -11,7 +11,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 connectDB();
-
+console.log("MAIL USER:", process.env.MAIL_USER);
 const app = express();
 
 app.use(cors());
