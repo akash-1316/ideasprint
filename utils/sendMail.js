@@ -1,26 +1,22 @@
-import axios from "axios";
+import nodemailer from "nodemailer";
 
 const sendMail = async ({ to, subject, html }) => {
-  await axios.post(
-    "https://api.brevo.com/v3/smtp/email",
-    {
-      sender: {
-        name: "RAIC IdeaSprint",
-        email: "freefireakash73@gmail.com",
-      },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
     },
-    {
-      headers: {
-        "api-key": process.env.BREVO_API_KEY,
-        "Content-Type": "application/json",
-        accept: "application/json",
-      },
-      timeout: 10000,
-    }
-  );
+  });
+
+  await transporter.verify(); // 🔥 catches auth issues early
+
+  await transporter.sendMail({
+    from: `"RAIC Team" <${process.env.MAIL_USER}>`,
+    to,
+    subject,
+    html,
+  });
 };
 
 export default sendMail;
