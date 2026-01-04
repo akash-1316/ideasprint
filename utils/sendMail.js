@@ -6,7 +6,7 @@ const sendMail = async ({ to, subject, html }) => {
     {
       sender: {
         name: "RAIC IdeaSprint",
-        email: "no-reply@ideasprint.raic",
+        email: "freefireakash73@gmail.com",
       },
       to: [{ email: to }],
       subject,
