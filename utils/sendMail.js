@@ -1,22 +1,32 @@
-import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+
+import sgMail from "@sendgrid/mail";
+
+console.log("🔑 SENDGRID KEY:", process.env.SENDGRID_API_KEY);
+console.log("📤 MAIL_FROM:", process.env.MAIL_FROM);
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendMail = async ({ to, subject, html }) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS,
-    },
-  });
+  console.log("📨 sendMail() called for:", to);
 
-  await transporter.verify(); // 🔥 catches auth issues early
+  try {
+    await sgMail.send({
+      to,
+      from: {
+        email: process.env.MAIL_FROM,
+        name: "RAIC Team",
+      },
+      subject,
+      html,
+    });
 
-  await transporter.sendMail({
-    from: `"RAIC Team" <${process.env.MAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
+    console.log("✅ SendGrid mail sent to:", to);
+  } catch (err) {
+    console.error("❌ SENDGRID ERROR:", err.response?.body || err);
+    throw err;
+  }
 };
 
 export default sendMail;
