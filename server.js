@@ -1,5 +1,8 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+// 🔥 MUST be FIRST
+
+import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import sendMail from "./utils/sendMail.js";
@@ -9,14 +12,31 @@ import registrationRoutes from "./routes/registrationRoutes.js";
 import successRoutes from "./routes/successRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
-dotenv.config();
 connectDB();
+
 const app = express();
 
-app.use(cors());
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://ideasprint-xi.vercel.app/",
+      "https://ideasprint-admin-panel.vercel.app/",
+    ],
+    credentials: true,
+  })
+);
+
+/* =========================
+   ROUTES
+========================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/payment", paymentRoutes);      // ✅ IMPORTANT
 app.use("/api/registration", registrationRoutes);
@@ -26,20 +46,21 @@ app.get("/test-mail", async (req, res) => {
   try {
     await sendMail({
       to: "freefireakash73@gmail.com",
-      subject: "RAIC Mail Test ✅",
-      html: "<h2>Mail Working 🎉</h2>",
+      subject: "SendGrid Test",
+      html: "<h1>SendGrid is working</h1>",
     });
-
     res.send("Mail sent");
   } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
+    console.error("TEST MAIL ERROR:", err);
+    res.status(500).send("Mail failed");
   }
 });
 
-
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get("/", (req, res) => {
-  res.send("🚀 IdeaSprint Backend Running");
+  res.send("🚀 IdeaSprint Backend Running (Cloudinary Enabled)");
 });
 
 const PORT = process.env.PORT || 5000;
