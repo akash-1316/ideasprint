@@ -1,25 +1,13 @@
 import express from "express";
 import Registration from "../models/Registration.js";
 import protect from "../middleware/authMiddleware.js";
-import multer from "multer";
 import Payment from "../models/Payment.js";
+import upload from "../middleware/cloudinaryMiddleware.js";
 
 const router = express.Router();
 
 /* =========================
-   MULTER CONFIG
-========================= */
-const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage });
-
-/* =========================
-   SUBMIT PAYMENT
+   SUBMIT PAYMENT (CLOUDINARY)
 ========================= */
 router.post(
   "/submit",
@@ -34,10 +22,10 @@ router.post(
       }
 
       await Payment.create({
-        userId: req.user,      // ✅ consistent with auth middleware
+        userId: req.user,          // ✅ same auth logic
         utr,
-        amount,                // ✅ slab pricing stored
-        screenshot: req.file.filename,
+        amount,
+        screenshot: req.file.path, // 🔥 Cloudinary URL
       });
 
       res.json({ message: "Payment submitted successfully" });
