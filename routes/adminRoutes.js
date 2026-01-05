@@ -47,12 +47,10 @@ router.get("/payments", protect, adminProtect, async (req, res) => {
 });
 
 /* ================= VERIFY PAYMENT ================= */
+/* ================= VERIFY PAYMENT ================= */
 router.put("/payment/:id", protect, adminProtect, async (req, res) => {
   try {
     const verified = Boolean(req.body.verified);
-
-    console.log("🔵 Incoming verify:", req.body.verified);
-    console.log("🔵 Parsed verified:", verified);
 
     const payment = await Payment.findById(req.params.id);
     if (!payment) {
@@ -60,8 +58,8 @@ router.put("/payment/:id", protect, adminProtect, async (req, res) => {
     }
 
     const wasVerified = payment.verified;
-    console.log("🔵 Was verified:", wasVerified);
 
+    // update status
     payment.verified = verified;
     await payment.save();
 
@@ -70,19 +68,8 @@ router.put("/payment/:id", protect, adminProtect, async (req, res) => {
       { paymentStatus: verified ? "confirmed" : "pending" }
     );
 
-    console.log("🟢 FORCING SENDGRID TEST");
-
-    // 🔥 FORCE SEND (bypasses all logic)
-    await sendMail({
-      to: "freefireakash73@gmail.com",
-      subject: "FORCED ADMIN TEST MAIL",
-      html: "<h1>If you see this, SendGrid is working 🎉</h1>",
-    });
-
-    console.log("✅ FORCED MAIL SENT");
-
-    // Normal mail to user
-    if (verified) {
+    // ✅ SEND MAIL ONLY ON FIRST VERIFY
+    if (verified && !wasVerified) {
       const user = await User.findById(payment.userId);
       const team = await Registration.findOne({ userId: payment.userId });
 
@@ -91,11 +78,16 @@ router.put("/payment/:id", protect, adminProtect, async (req, res) => {
           to: user.email,
           subject: "RAIC Payment Verified ✅",
           html: `
-            <h2>Payment Verified</h2>
-            <p>Hello ${user.name}</p>
-            <p>Team: ${team?.teamName}</p>
-            <p>Amount: ₹${payment.amount}</p>
-            <p>UTR: ${payment.utr}</p>
+            <div style="font-family: Arial">
+              <h2>Payment Verified 🎉</h2>
+              <p>Hello <b>${user.name}</b>,</p>
+              <p>Your payment has been verified successfully.</p>
+              <p><b>Team:</b> ${team?.teamName}</p>
+              <p><b>Amount:</b> ₹${payment.amount}</p>
+              <p><b>UTR:</b> ${payment.utr}</p>
+              <br/>
+              <p>— Team RAIC</p>
+            </div>
           `,
         });
       }
@@ -107,7 +99,6 @@ router.put("/payment/:id", protect, adminProtect, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 /* ================= REGISTRATIONS ================= */
 router.get("/registrations", protect, adminProtect, async (req, res) => {
