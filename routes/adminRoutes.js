@@ -165,4 +165,45 @@ router.get(
   }
 );
 
+router.post(
+  "/payment/:id/resend-mail",
+  protect,
+  adminProtect,
+  async (req, res) => {
+    try {
+      const payment = await Payment.findById(req.params.id);
+      if (!payment || !payment.verified) {
+        return res
+          .status(400)
+          .json({ message: "Payment not verified yet" });
+      }
+
+      const user = await User.findById(payment.userId);
+      const team = await Registration.findOne({ userId: payment.userId });
+
+      await sendMail({
+        to: user.email,
+        subject: "RAIC Payment Verified ✅",
+        html: `
+          <div style="font-family: Arial">
+            <h2>Payment Verified 🎉</h2>
+            <p>Hello <b>${user.name}</b>,</p>
+            <p>This is a confirmation that your payment is verified.</p>
+            <p><b>Team:</b> ${team?.teamName}</p>
+            <p><b>Amount:</b> ₹${payment.amount}</p>
+            <p><b>UTR:</b> ${payment.utr}</p>
+            <br/>
+            <p>— Team RAIC</p>
+          </div>
+        `,
+      });
+
+      res.json({ message: "Verification mail resent" });
+    } catch (err) {
+      console.error("❌ Resend mail error:", err);
+      res.status(500).json({ message: "Failed to resend mail" });
+    }
+  }
+);
+
 export default router;
